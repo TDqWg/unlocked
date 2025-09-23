@@ -252,6 +252,12 @@ app.post('/api/admin/remove-duplicates', auth(['admin']), async (req, res) => {
   res.json({ ok: true, message: `${result.affectedRows} duplicate media removed` });
 });
 
+// Admin: Clear all media
+app.post('/api/admin/clear-all', auth(['admin']), async (req, res) => {
+  const [result] = await pool.query('DELETE FROM media');
+  res.json({ ok: true, message: `${result.affectedRows} media items cleared` });
+});
+
 // Admin: Get all media (including unapproved)
 app.get('/api/admin/media', auth(['admin']), async (req, res) => {
   const [rows] = await pool.query(

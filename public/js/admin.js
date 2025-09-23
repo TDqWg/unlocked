@@ -58,10 +58,11 @@ async function loadGallery() {
       const info = document.createElement('div');
       info.style.cssText = 'flex: 1;';
       info.innerHTML = `
-        <div><strong>${item.title || 'Untitled'}</strong></div>
+        <div><strong>${item.title || 'Untitled'}</strong> <span style="color: #999; font-size: 11px;">(ID: ${item.id})</span></div>
         <div style="font-size: 12px; color: #666;">${item.type.toUpperCase()} • ${item.likes} likes • ${item.category || 'No category'}</div>
         <div style="font-size: 11px; color: #999;">Added: ${new Date(item.created_at).toLocaleDateString()}</div>
         <div style="font-size: 11px; color: ${item.is_approved ? '#6f6' : '#f66'};">${item.is_approved ? 'Approved' : 'Pending'}</div>
+        <div style="font-size: 10px; color: #999; word-break: break-all; max-width: 300px;">${item.url}</div>
       `;
       
       const deleteBtn = document.createElement('button');
@@ -143,6 +144,24 @@ document.getElementById('removeDuplicatesBtn').addEventListener('click', async (
   
   try{
     const result = await api('/api/admin/remove-duplicates',{ method:'POST'});
+    adminMsg.textContent = result.message;
+    adminMsg.style.color = '#6f6';
+    
+    // Refresh gallery list
+    loadGallery();
+  }catch(err){
+    adminMsg.textContent = err.message;
+    adminMsg.style.color = '#f66';
+  }
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', async ()=>{
+  const adminMsg = document.getElementById('adminMsg');
+  if (!confirm('⚠️ WARNING: This will delete ALL media from the gallery. Are you absolutely sure?')) return;
+  if (!confirm('This action cannot be undone. Are you really sure you want to clear everything?')) return;
+  
+  try{
+    const result = await api('/api/admin/clear-all',{ method:'POST'});
     adminMsg.textContent = result.message;
     adminMsg.style.color = '#6f6';
     
