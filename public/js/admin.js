@@ -114,7 +114,7 @@ document.getElementById('addBtn').addEventListener('click', async ()=>{
   const type = url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image';
   
   try {
-    await api('/api/media', {
+    await api('/api/admin/media', {
       method: 'POST',
       body: JSON.stringify({ url, title, type, category })
     });
