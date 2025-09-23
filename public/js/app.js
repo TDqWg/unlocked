@@ -53,17 +53,39 @@ async function checkAuthStatus() {
       document.getElementById('loginForm').style.display = 'none';
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'block';
+      
+      // Show/hide admin link based on role
+      const adminLink = document.querySelector('nav a[href="/admin"]');
+      if (adminLink) {
+        if (result.user.role === 'admin') {
+          adminLink.style.display = 'block';
+        } else {
+          adminLink.style.display = 'none';
+        }
+      }
     } else {
-      // User is not logged in - show login form, hide logout
+      // User is not logged in - show login form, hide logout and admin
       document.getElementById('loginForm').style.display = 'block';
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
+      
+      // Hide admin link when not logged in
+      const adminLink = document.querySelector('nav a[href="/admin"]');
+      if (adminLink) {
+        adminLink.style.display = 'none';
+      }
     }
   } catch (error) {
-    // Not logged in - show login form
+    // Not logged in - show login form, hide admin
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'none';
+    
+    // Hide admin link when not logged in
+    const adminLink = document.querySelector('nav a[href="/admin"]');
+    if (adminLink) {
+      adminLink.style.display = 'none';
+    }
   }
 }
 

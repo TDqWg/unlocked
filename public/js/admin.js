@@ -4,6 +4,24 @@ async function api(path, opts={}) {
   return res.json();
 }
 
+// Check if user is admin, redirect if not
+async function checkAdminAuth() {
+  try {
+    const result = await api('/api/auth/me');
+    if (!result.user || result.user.role !== 'admin') {
+      alert('Access denied. Admin privileges required.');
+      window.location.href = '/';
+      return;
+    }
+  } catch (error) {
+    alert('Please log in to access admin panel.');
+    window.location.href = '/';
+  }
+}
+
+// Check admin auth on page load
+checkAdminAuth();
+
 document.getElementById('addBtn').addEventListener('click', async ()=>{
   const title = document.getElementById('title').value.trim();
   const url = document.getElementById('url').value.trim();
