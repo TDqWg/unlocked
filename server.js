@@ -75,7 +75,13 @@ async function initDatabase() {
     );
     `;
     
-    await pool.query(sql);
+    // Execute each table creation separately to avoid syntax issues
+    const tables = sql.split(';').filter(stmt => stmt.trim());
+    for (const tableSql of tables) {
+      if (tableSql.trim()) {
+        await pool.query(tableSql);
+      }
+    }
     
     // Seed categories
     const cats = ['General', 'Photos', 'Videos'];
@@ -93,6 +99,10 @@ async function initDatabase() {
       );
       console.log('✅ Admin user created');
     }
+    
+    // Remove sample media if it exists
+    await pool.query("DELETE FROM media WHERE url LIKE '%sample%'");
+    console.log('✅ Sample media removed');
     
     console.log('✅ Database initialized successfully');
   } catch (error) {
@@ -209,6 +219,12 @@ app.post('/api/media/:id/comments', auth(), async (req, res) => {
   if (!body) return res.status(400).json({ error: 'Empty comment' });
   await pool.query('INSERT INTO comments (media_id, user_id, body) VALUES (?,?,?)', [id, req.user.id, body]);
   res.json({ ok: true });
+});
+
+// Admin: Remove sample media
+app.post('/api/admin/remove-samples', auth(['admin']), async (req, res) => {
+  await pool.query("DELETE FROM media WHERE url LIKE '%sample%'");
+  res.json({ ok: true, message: 'Sample media removed' });
 });
 
 const PORT = process.env.PORT || 3000;

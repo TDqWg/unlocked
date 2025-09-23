@@ -19,3 +19,17 @@ document.getElementById('addBtn').addEventListener('click', async ()=>{
     msg.style.color = '#f66';
   }
 });
+
+document.getElementById('removeSamplesBtn').addEventListener('click', async ()=>{
+  const adminMsg = document.getElementById('adminMsg');
+  if (!confirm('Are you sure you want to remove all sample media?')) return;
+  
+  try{
+    await api('/api/admin/remove-samples',{ method:'POST'});
+    adminMsg.textContent = 'Sample media removed!';
+    adminMsg.style.color = '#6f6';
+  }catch(err){
+    adminMsg.textContent = err.message;
+    adminMsg.style.color = '#f66';
+  }
+});
