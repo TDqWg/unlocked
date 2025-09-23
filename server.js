@@ -151,6 +151,7 @@ const auth = (roles = []) => async (req, res, next) => {
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/forum', (_, res) => res.sendFile(path.join(__dirname, 'public', 'forum.html')));
+app.get('/users', (_, res) => res.sendFile(path.join(__dirname, 'public', 'users.html')));
 
 // Auth
 app.post('/api/auth/register', async (req, res) => {
@@ -317,6 +318,31 @@ app.delete('/api/admin/media/:id', auth(['admin']), async (req, res) => {
   const id = Number(req.params.id);
   await pool.query('DELETE FROM media WHERE id=?', [id]);
   res.json({ ok: true, message: 'Media deleted' });
+});
+
+// User management endpoints
+app.get('/api/admin/users', auth(['admin']), async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+  );
+  res.json({ users: rows });
+});
+
+app.delete('/api/admin/users/:id', auth(['admin']), async (req, res) => {
+  const id = Number(req.params.id);
+  
+  // Check if user exists and is not admin
+  const [userRows] = await pool.query('SELECT role FROM users WHERE id=?', [id]);
+  if (userRows.length === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  if (userRows[0].role === 'admin') {
+    return res.status(400).json({ error: 'Cannot delete admin user' });
+  }
+  
+  await pool.query('DELETE FROM users WHERE id=?', [id]);
+  res.json({ ok: true, message: 'User deleted' });
 });
 
 const PORT = process.env.PORT || 3000;

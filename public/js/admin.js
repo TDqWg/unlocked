@@ -1,10 +1,18 @@
 async function api(path, opts={}) {
-  const res = await fetch(path, { credentials:'include', headers:{'content-type':'application/json'}, ...opts });
-  if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
-  return res.json();
+  try {
+    const res = await fetch(path, { credentials:'include', headers:{'content-type':'application/json'}, ...opts });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(errorData.error || `HTTP ${res.status}: Request failed`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
 }
 
-// Check if user is admin, redirect if not
+// Check admin authentication
 async function checkAdminAuth() {
   try {
     const result = await api('/api/auth/me');
@@ -18,11 +26,9 @@ async function checkAdminAuth() {
     window.location.href = '/';
   }
 }
-
-// Check admin auth on page load
 checkAdminAuth();
 
-// Load gallery management
+// Load gallery for admin
 async function loadGallery() {
   const galleryList = document.getElementById('galleryList');
   try {
@@ -94,46 +100,51 @@ async function deleteMedia(id, element) {
   }
 }
 
-// Load gallery when page loads
-loadGallery();
-
+// Event listeners
 document.getElementById('addBtn').addEventListener('click', async ()=>{
-  const title = document.getElementById('title').value.trim();
   const url = document.getElementById('url').value.trim();
-  const type = document.getElementById('type').value;
+  const title = document.getElementById('title').value.trim();
   const category = document.getElementById('category').value.trim();
-  const msg = document.getElementById('msg');
-  try{
-    await api('/api/admin/media',{ method:'POST', body: JSON.stringify({ title, url, type, category })});
-    msg.textContent = 'Added!';
-    msg.style.color = '#6f6';
+  
+  if (!url) {
+    alert('Please enter a URL');
+    return;
+  }
+  
+  const type = url.match(/\.(mp4|webm|ogg)$/i) ? 'video' : 'image';
+  
+  try {
+    await api('/api/media', {
+      method: 'POST',
+      body: JSON.stringify({ url, title, type, category })
+    });
     
-    // Clear form
-    document.getElementById('title').value = '';
+    document.getElementById('msg').textContent = 'Media added successfully';
+    document.getElementById('msg').style.color = '#6f6';
     document.getElementById('url').value = '';
+    document.getElementById('title').value = '';
     document.getElementById('category').value = '';
     
-    // Refresh gallery list
-    loadGallery();
-  }catch(err){
-    msg.textContent = err.message;
-    msg.style.color = '#f66';
+    loadGallery(); // Refresh gallery
+  } catch (error) {
+    document.getElementById('msg').textContent = 'Error: ' + error.message;
+    document.getElementById('msg').style.color = '#f66';
   }
 });
 
 document.getElementById('removeSamplesBtn').addEventListener('click', async ()=>{
   const adminMsg = document.getElementById('adminMsg');
-  if (!confirm('Are you sure you want to remove all sample media?')) return;
+  if (!confirm('Are you sure you want to remove sample media?')) return;
   
   try{
-    await api('/api/admin/remove-samples',{ method:'POST'});
-    adminMsg.textContent = 'Sample media removed!';
+    const result = await api('/api/admin/remove-samples',{ method:'POST'});
+    adminMsg.textContent = result.message;
     adminMsg.style.color = '#6f6';
     
     // Refresh gallery list
     loadGallery();
   }catch(err){
-    adminMsg.textContent = err.message;
+    adminMsg.textContent = 'Error: ' + err.message;
     adminMsg.style.color = '#f66';
   }
 });
@@ -150,7 +161,7 @@ document.getElementById('removeDuplicatesBtn').addEventListener('click', async (
     // Refresh gallery list
     loadGallery();
   }catch(err){
-    adminMsg.textContent = err.message;
+    adminMsg.textContent = 'Error: ' + err.message;
     adminMsg.style.color = '#f66';
   }
 });
@@ -168,7 +179,14 @@ document.getElementById('clearAllBtn').addEventListener('click', async ()=>{
     // Refresh gallery list
     loadGallery();
   }catch(err){
-    adminMsg.textContent = err.message;
+    adminMsg.textContent = 'Error: ' + err.message;
     adminMsg.style.color = '#f66';
   }
 });
+
+document.getElementById('userAccountsBtn').addEventListener('click', ()=>{
+  window.location.href = '/users';
+});
+
+// Initial load
+loadGallery();

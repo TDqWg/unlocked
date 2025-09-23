@@ -244,19 +244,18 @@ button:hover {
 /* Profile Dropdown - positioned near user button */
 #profileDropdown {
   position: absolute;
-  top: 60px;
-  right: 20px;
+  top: 50px;
+  right: 0;
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  min-width: 320px;
-  max-width: 400px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 250px;
+  max-width: 300px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   z-index: 1001;
   display: none;
-  position: relative;
   overflow: hidden;
 }
 
@@ -474,13 +473,13 @@ button:hover {
 }
 
 #profileInfo p {
-  margin: 12px 0;
-  padding: 8px 0;
+  margin: 8px 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #profileInfo p:last-child {
@@ -684,4 +683,133 @@ button:hover {
   justify-content: center;
   color: var(--muted);
   font-style: italic;
+}
+
+/* Users Page Styles */
+.users-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.users-header h2 {
+  margin: 0;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.user-stats {
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.users-list {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.users-table {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 100px 120px 100px;
+  gap: 16px;
+  align-items: center;
+}
+
+.table-header {
+  display: contents;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.table-header > div {
+  padding: 8px 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.table-row {
+  display: contents;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease;
+}
+
+.table-row:hover {
+  background: rgba(255, 107, 107, 0.05);
+}
+
+.table-row > div {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.admin {
+  background: var(--accent);
+  color: white;
+}
+
+.role-badge.user {
+  background: var(--secondary);
+  color: white;
+}
+
+.delete-user-btn {
+  background: #f66;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.delete-user-btn:hover:not(:disabled) {
+  background: #f44;
+  transform: translateY(-1px);
+}
+
+.delete-user-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
 }

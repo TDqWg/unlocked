@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Accounts - Unlocked Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>User Accounts</h1>
+    <nav>
+      <a href="/">Gallery</a>
+      <a href="/forum">Forum</a>
+      <a href="/admin">Admin</a>
+      <button id="accountBtn" style="display:none; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; margin-left: 12px;">👤</button>
+    </nav>
+    
+    <!-- Profile Dropdown -->
+    <div id="profileDropdown" style="display:none">
+      <h3>My Account</h3>
+      <div id="profileInfo">
+        <p><strong>Username:</strong> <span id="profileUsername"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail" style="display:none;"></span> <button id="toggleProfileEmailBtn" style="background: var(--accent); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">Show Email</button></p>
+        <p><strong>Member since:</strong> <span id="profileCreated"></span></p>
+      </div>
+      <div class="profile-actions">
+        <button id="closeProfileBtn">Close</button>
+        <button id="logoutFromProfileBtn">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="users-container">
+      <div class="users-header">
+        <h2>All Registered Users</h2>
+        <div class="user-stats">
+          <span id="totalUsers">Total Users: 0</span>
+        </div>
+      </div>
+      
+      <div class="users-list">
+        <div id="usersTable">
+          <p>Loading users...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <small>© Unlocked · <a href="#" id="dmca">DMCA</a></small>
+  </footer>
+
+  <script src="/js/users.js"></script>
+</body>
+</html>

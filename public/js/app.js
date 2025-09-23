@@ -89,11 +89,18 @@ async function checkAuthStatus() {
       // Update profile info
       document.getElementById('profileUsername').textContent = result.user.username;
       document.getElementById('profileEmail').textContent = result.user.email;
-      document.getElementById('profileCreated').textContent = new Date(result.user.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      
+      // Fix date formatting
+      const createdDate = new Date(result.user.created_at);
+      if (!isNaN(createdDate.getTime())) {
+        document.getElementById('profileCreated').textContent = createdDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      } else {
+        document.getElementById('profileCreated').textContent = 'Unknown';
+      }
       
       // Show/hide admin link based on role
       const adminLink = document.querySelector('nav a[href="/admin"]');
