@@ -241,6 +241,35 @@ button:hover {
   backdrop-filter: blur(10px);
 }
 
+/* Profile Dropdown - positioned near user button */
+#profileDropdown {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  z-index: 1001;
+  display: none;
+  position: relative;
+  overflow: hidden;
+}
+
+#profileDropdown::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient);
+}
+
 .account-dropdown {
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -430,4 +459,229 @@ button:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-hover);
+}
+
+/* Profile Dropdown Styles */
+#profileDropdown h3 {
+  margin: 0 0 16px 0;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+#profileInfo p {
+  margin: 12px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+#profileInfo p:last-child {
+  border-bottom: none;
+}
+
+#profileInfo strong {
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 100px;
+}
+
+#toggleProfileEmailBtn {
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#toggleProfileEmailBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.profile-actions button {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: rgba(26, 26, 29, 0.8);
+  color: var(--fg);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+.profile-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+#logoutFromProfileBtn {
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  border: none;
+  color: white;
+}
+
+#logoutFromProfileBtn:hover {
+  background: linear-gradient(135deg, #ff5252, #f44336);
+  transform: translateY(-1px);
+}
+
+/* Forum Styles */
+.forum-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.forum-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.forum-header h2 {
+  margin: 0;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+#newPostBtn {
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#newPostBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.forum-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.category-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border-color: var(--accent);
+}
+
+.category-card:hover::before {
+  opacity: 1;
+}
+
+.category-card h3 {
+  margin: 0 0 12px 0;
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.category-card p {
+  margin: 0 0 16px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.post-count {
+  background: var(--accent);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recent-posts {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.recent-posts h3 {
+  margin: 0 0 20px 0;
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+#postsList {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-style: italic;
 }

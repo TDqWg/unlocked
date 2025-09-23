@@ -12,69 +12,6 @@ async function api(path, opts={}) {
   }
 }
 
-async function load() {
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '<p>Loading…</p>';
-  try {
-    const { items } = await api('/api/media');
-    
-    // Get user's liked posts if logged in
-    let likedIds = [];
-    try {
-      const { likedIds: userLikes } = await api('/api/user/likes');
-      likedIds = userLikes;
-    } catch (err) {
-      // User not logged in, that's fine
-    }
-    
-    grid.innerHTML = '';
-    items.forEach(m => {
-      const el = document.createElement('div');
-      el.className = 'card';
-      if (m.type === 'image') {
-        const img = new Image(); img.loading='lazy'; img.src = m.url; el.appendChild(img);
-      } else {
-        const v = document.createElement('video'); v.controls = true; v.preload='metadata';
-        const s = document.createElement('source'); s.src = m.url; s.type = 'video/mp4'; v.appendChild(s);
-        el.appendChild(v);
-      }
-      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.marginTop='6px';
-      const isLiked = likedIds.includes(m.id);
-      const heartIcon = isLiked ? '❤️' : '🤍';
-      row.innerHTML = `<span>${m.title ?? ''}</span><button data-id="${m.id}" class="like" data-liked="${isLiked}">${heartIcon} ${m.likes}</button>`;
-      el.appendChild(row);
-      grid.appendChild(el);
-    });
-
-    grid.addEventListener('click', async (e)=>{
-      const b = e.target.closest('button.like'); if(!b) return;
-      const id = b.getAttribute('data-id');
-      const isCurrentlyLiked = b.getAttribute('data-liked') === 'true';
-      
-      try{ 
-        const result = await api(`/api/media/${id}/like`, { method:'POST' }); 
-        
-        // Update button state
-        const newLikeCount = parseInt(b.textContent.slice(2));
-        const newCount = result.liked ? newLikeCount + 1 : newLikeCount - 1;
-        const newHeart = result.liked ? '❤️' : '🤍';
-        
-        b.textContent = `${newHeart} ${newCount}`;
-        b.setAttribute('data-liked', result.liked);
-        
-      }catch(err){ 
-        if (err.message.includes('401')) {
-          alert('Please log in to like media');
-        } else {
-          alert(err.message); 
-        }
-      }
-    });
-  } catch (err) {
-    grid.innerHTML = `<p style="color:#f66">${err.message}</p>`;
-  }
-}
-
 // Check if user is logged in and update UI
 async function checkAuthStatus() {
   try {
@@ -85,6 +22,7 @@ async function checkAuthStatus() {
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'block';
       document.getElementById('accountBtn').style.display = 'block';
+      document.getElementById('newPostBtn').style.display = 'block';
       
       // Update profile info
       document.getElementById('profileUsername').textContent = result.user.username;
@@ -110,6 +48,7 @@ async function checkAuthStatus() {
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('accountBtn').style.display = 'none';
+      document.getElementById('newPostBtn').style.display = 'none';
       
       // Hide admin link when not logged in
       const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -123,6 +62,7 @@ async function checkAuthStatus() {
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'none';
     document.getElementById('accountBtn').style.display = 'none';
+    document.getElementById('newPostBtn').style.display = 'none';
     
     // Hide admin link when not logged in
     const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -132,7 +72,7 @@ async function checkAuthStatus() {
   }
 }
 
-// Simple auth bar
+// Login functionality
 document.getElementById('loginBtn')?.addEventListener('click', async ()=>{
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -189,16 +129,6 @@ document.getElementById('toggleProfileEmailBtn')?.addEventListener('click', ()=>
   }
 });
 
-// Close profile dropdown when clicking outside
-document.addEventListener('click', (e) => {
-  const dropdown = document.getElementById('profileDropdown');
-  const accountBtn = document.getElementById('accountBtn');
-  
-  if (dropdown && !dropdown.contains(e.target) && !accountBtn.contains(e.target)) {
-    dropdown.style.display = 'none';
-  }
-});
-
 // Registration functionality
 document.getElementById('showRegisterBtn')?.addEventListener('click', ()=>{
   document.getElementById('loginForm').style.display = 'none';
@@ -233,6 +163,27 @@ document.getElementById('registerBtn')?.addEventListener('click', async ()=>{
   }
 });
 
+// New post functionality
+document.getElementById('newPostBtn')?.addEventListener('click', ()=>{
+  const title = prompt('Post Title:');
+  if (!title) return;
+  
+  const content = prompt('Post Content:');
+  if (!content) return;
+  
+  // For now, just show an alert - we'll implement the backend later
+  alert('New post feature coming soon!');
+});
+
+// Close profile dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('profileDropdown');
+  const accountBtn = document.getElementById('accountBtn');
+  
+  if (dropdown && !dropdown.contains(e.target) && !accountBtn.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
 // Initialize the page
 checkAuthStatus();
-load();

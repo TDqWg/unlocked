@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Unlocked Gallery</title>
+  <title>Forum - Unlocked</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
@@ -17,7 +17,7 @@
   </div>
 
   <header>
-    <h1>Unlocked Gallery</h1>
+    <h1>Unlocked Forum</h1>
     <nav>
       <a href="/">Gallery</a>
       <a href="/forum">Forum</a>
@@ -56,24 +56,40 @@
         <button id="showLoginBtn">Back to Login</button>
       </div>
       <button id="logoutBtn" style="display:none">Log out</button>
+    </div>
+
+    <!-- Forum Content -->
+    <div class="forum-container">
+      <div class="forum-header">
+        <h2>Community Forum</h2>
+        <button id="newPostBtn" style="display:none">New Post</button>
+      </div>
       
-      <!-- Account Section -->
-      <div id="accountSection" style="display:none">
-        <div class="account-dropdown">
-          <h3>My Account</h3>
-          <div id="accountInfo">
-            <p><strong>Username:</strong> <span id="accountUsername"></span></p>
-            <p><strong>Email:</strong> <span id="accountEmail" style="display:none;"></span> <button id="toggleEmailBtn" style="background: #333; border: 1px solid #555; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">Show Email</button></p>
-            <p><strong>Member since:</strong> <span id="accountCreated"></span></p>
-          </div>
-          <div class="account-actions">
-            <button id="closeAccountBtn">Close</button>
-            <button id="logoutFromAccountBtn">Log out</button>
-          </div>
+      <div class="forum-categories">
+        <div class="category-card">
+          <h3>General Discussion</h3>
+          <p>General topics and community chat</p>
+          <span class="post-count">0 posts</span>
+        </div>
+        <div class="category-card">
+          <h3>Gallery Discussion</h3>
+          <p>Discuss the latest gallery content</p>
+          <span class="post-count">0 posts</span>
+        </div>
+        <div class="category-card">
+          <h3>Support</h3>
+          <p>Get help and report issues</p>
+          <span class="post-count">0 posts</span>
+        </div>
+      </div>
+
+      <div class="recent-posts">
+        <h3>Recent Posts</h3>
+        <div id="postsList">
+          <p>No posts yet. Be the first to start a discussion!</p>
         </div>
       </div>
     </div>
-    <section id="grid" class="grid"></section>
   </main>
 
   <footer>
@@ -89,6 +105,6 @@
       document.getElementById('age-gate').style.display='none';
     };
   })();</script>
-  <script src="/js/app.js"></script>
+  <script src="/js/forum.js"></script>
 </body>
 </html>

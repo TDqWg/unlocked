@@ -150,6 +150,7 @@ const auth = (roles = []) => async (req, res, next) => {
 // Routes: basic pages (served from /public)
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/forum', (_, res) => res.sendFile(path.join(__dirname, 'public', 'forum.html')));
 
 // Auth
 app.post('/api/auth/register', async (req, res) => {
