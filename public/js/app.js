@@ -88,7 +88,9 @@ async function checkAuthStatus() {
       
       // Update profile info
       document.getElementById('profileUsername').textContent = result.user.username;
-      document.getElementById('profileEmail').textContent = result.user.email;
+      // Store the real email for toggle functionality
+      document.getElementById('profileEmail').setAttribute('data-email', result.user.email);
+      document.getElementById('profileEmail').textContent = '***@***.***';
       
       // Fix date formatting
       const createdDate = new Date(result.user.created_at);
@@ -186,12 +188,13 @@ document.getElementById('logoutFromProfileBtn')?.addEventListener('click', async
 document.getElementById('toggleProfileEmailBtn')?.addEventListener('click', ()=>{
   const emailSpan = document.getElementById('profileEmail');
   const toggleBtn = document.getElementById('toggleProfileEmailBtn');
+  const realEmail = emailSpan.getAttribute('data-email');
   
-  if (emailSpan.style.display === 'none') {
-    emailSpan.style.display = 'inline';
+  if (emailSpan.textContent === '***@***.***') {
+    emailSpan.textContent = realEmail;
     toggleBtn.textContent = 'Hide Email';
   } else {
-    emailSpan.style.display = 'none';
+    emailSpan.textContent = '***@***.***';
     toggleBtn.textContent = 'Show Email';
   }
 });

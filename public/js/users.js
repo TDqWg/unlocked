@@ -22,7 +22,9 @@ async function checkAuthStatus() {
       
       // Update profile info
       document.getElementById('profileUsername').textContent = result.user.username;
-      document.getElementById('profileEmail').textContent = result.user.email;
+      // Store the real email for toggle functionality
+      document.getElementById('profileEmail').setAttribute('data-email', result.user.email);
+      document.getElementById('profileEmail').textContent = '***@***.***';
       
       // Fix date formatting
       const createdDate = new Date(result.user.created_at);
@@ -90,6 +92,9 @@ async function loadUsers() {
               day: 'numeric'
             })}</div>
             <div>
+              <button class="show-password-btn" data-id="${user.id}" data-username="${user.username}">
+                Show Password
+              </button>
               <button class="delete-user-btn" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
                 ${user.role === 'admin' ? 'Protected' : 'Delete'}
               </button>
@@ -110,6 +115,30 @@ async function loadUsers() {
           } catch (error) {
             alert('Error deleting user: ' + error.message);
           }
+        }
+      });
+    });
+    
+    // Add password reveal event listeners
+    document.querySelectorAll('.show-password-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const userId = e.target.dataset.id;
+        const username = e.target.dataset.username;
+        
+        // Ask for admin password
+        const adminPassword = prompt(`Enter admin password to reveal password for ${username}:`);
+        if (!adminPassword) return;
+        
+        try {
+          const result = await api(`/api/admin/users/${userId}/password`, { 
+            method: 'POST',
+            body: JSON.stringify({ adminPassword })
+          });
+          
+          // Show password in a modal or alert
+          alert(`Password for ${username}: ${result.password}`);
+        } catch (error) {
+          alert('Error: ' + error.message);
         }
       });
     });
@@ -139,12 +168,13 @@ document.getElementById('logoutFromProfileBtn')?.addEventListener('click', async
 document.getElementById('toggleProfileEmailBtn')?.addEventListener('click', ()=>{
   const emailSpan = document.getElementById('profileEmail');
   const toggleBtn = document.getElementById('toggleProfileEmailBtn');
+  const realEmail = emailSpan.getAttribute('data-email');
   
-  if (emailSpan.style.display === 'none') {
-    emailSpan.style.display = 'inline';
+  if (emailSpan.textContent === '***@***.***') {
+    emailSpan.textContent = realEmail;
     toggleBtn.textContent = 'Hide Email';
   } else {
-    emailSpan.style.display = 'none';
+    emailSpan.textContent = '***@***.***';
     toggleBtn.textContent = 'Show Email';
   }
 });

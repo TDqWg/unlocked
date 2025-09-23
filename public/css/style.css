@@ -813,3 +813,29 @@ button:hover {
   cursor: not-allowed;
   opacity: 0.6;
 }
+
+.show-password-btn {
+  background: #4ecdc4;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 8px;
+}
+
+.show-password-btn:hover {
+  background: #45b7b8;
+  transform: translateY(-1px);
+}
+
+.table-row > div:last-child {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

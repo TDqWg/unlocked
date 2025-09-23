@@ -345,6 +345,34 @@ app.delete('/api/admin/users/:id', auth(['admin']), async (req, res) => {
   res.json({ ok: true, message: 'User deleted' });
 });
 
+app.post('/api/admin/users/:id/password', auth(['admin']), async (req, res) => {
+  const id = Number(req.params.id);
+  const { adminPassword } = req.body;
+  
+  // Verify admin password
+  const [adminRows] = await pool.query('SELECT password_hash FROM users WHERE role="admin" LIMIT 1');
+  if (adminRows.length === 0) {
+    return res.status(500).json({ error: 'Admin user not found' });
+  }
+  
+  const isValidPassword = await bcrypt.compare(adminPassword, adminRows[0].password_hash);
+  if (!isValidPassword) {
+    return res.status(401).json({ error: 'Invalid admin password' });
+  }
+  
+  // Get user's password hash (we can't decrypt it, but we can show it's hashed)
+  const [userRows] = await pool.query('SELECT username, password_hash FROM users WHERE id=?', [id]);
+  if (userRows.length === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  // Note: We can't decrypt the password, so we'll show that it's hashed
+  res.json({ 
+    password: `[HASHED] ${userRows[0].password_hash.substring(0, 20)}...`,
+    note: 'Password is stored as a secure hash and cannot be decrypted'
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Start server with database initialization
