@@ -89,8 +89,10 @@ async function checkAuthStatus() {
       // Update profile info
       document.getElementById('profileUsername').textContent = result.user.username;
       // Store the real email for toggle functionality
-      document.getElementById('profileEmail').setAttribute('data-email', result.user.email);
-      document.getElementById('profileEmail').textContent = '***@***.***';
+      if (result.user.email) {
+        document.getElementById('profileEmail').setAttribute('data-email', result.user.email);
+        document.getElementById('profileEmail').textContent = '***@***.***';
+      }
       
       // Fix date formatting
       const createdDate = new Date(result.user.created_at);

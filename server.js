@@ -100,15 +100,15 @@ async function initDatabase() {
     }
     
     // Create admin user if it doesn't exist
-    const [rows] = await pool.query('SELECT id FROM users WHERE email=?', [process.env.ADMIN_EMAIL]);
-    if (rows.length === 0) {
-      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
-      await pool.query(
-        'INSERT INTO users (username, email, password_hash, role) VALUES (?,?,?,?)',
-        [process.env.ADMIN_USERNAME, process.env.ADMIN_EMAIL, hash, 'admin']
-      );
-      console.log('✅ Admin user created');
-    }
+           const [rows] = await pool.query('SELECT id FROM users WHERE email=?', [process.env.ADMIN_EMAIL]);
+           if (rows.length === 0) {
+             // Store admin password as plain text
+             await pool.query(
+               'INSERT INTO users (username, email, password_hash, role) VALUES (?,?,?,?)',
+               [process.env.ADMIN_USERNAME, process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, 'admin']
+             );
+             console.log('✅ Admin user created');
+           }
     
     // Remove sample media if it exists
     await pool.query("DELETE FROM media WHERE url LIKE '%sample%'");
@@ -157,11 +157,11 @@ app.get('/users', (_, res) => res.sendFile(path.join(__dirname, 'public', 'users
 app.post('/api/auth/register', async (req, res) => {
   const { username, email, password } = req.body || {};
   if (!username || !email || !password) return res.status(400).json({ error: 'Missing fields' });
-  const hash = await bcrypt.hash(password, 10);
+  // Store password as plain text instead of hashing
   try {
     const [r] = await pool.query('INSERT INTO users (username, email, password_hash) VALUES (?,?,?)',
-      [username, email, hash]);
-    const user = { id: r.insertId, role: 'user', username };
+      [username, email, password]);
+    const user = { id: r.insertId, role: 'user', username, email, created_at: new Date() };
     const token = sign(user);
     res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
     res.json({ ok: true, user });
@@ -175,11 +175,11 @@ app.post('/api/auth/login', async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM users WHERE email=? LIMIT 1', [email]);
   const user = rows[0];
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-  const ok = await bcrypt.compare(password, user.password_hash);
-  if (!ok) return res.status(400).json({ error: 'Invalid credentials' });
+  // Compare plain text passwords instead of hashed
+  if (password !== user.password_hash) return res.status(400).json({ error: 'Invalid credentials' });
   const token = sign(user);
   res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
-  res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
+  res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, role: user.role, created_at: user.created_at } });
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -349,27 +349,26 @@ app.post('/api/admin/users/:id/password', auth(['admin']), async (req, res) => {
   const id = Number(req.params.id);
   const { adminPassword } = req.body;
   
-  // Verify admin password
+  // Verify admin password (now plain text)
   const [adminRows] = await pool.query('SELECT password_hash FROM users WHERE role="admin" LIMIT 1');
   if (adminRows.length === 0) {
     return res.status(500).json({ error: 'Admin user not found' });
   }
   
-  const isValidPassword = await bcrypt.compare(adminPassword, adminRows[0].password_hash);
-  if (!isValidPassword) {
+  if (adminPassword !== adminRows[0].password_hash) {
     return res.status(401).json({ error: 'Invalid admin password' });
   }
   
-  // Get user's password hash (we can't decrypt it, but we can show it's hashed)
+  // Get user's password (now stored as plain text)
   const [userRows] = await pool.query('SELECT username, password_hash FROM users WHERE id=?', [id]);
   if (userRows.length === 0) {
     return res.status(404).json({ error: 'User not found' });
   }
   
-  // Note: We can't decrypt the password, so we'll show that it's hashed
+  // Show the actual password
   res.json({ 
-    password: `[HASHED] ${userRows[0].password_hash.substring(0, 20)}...`,
-    note: 'Password is stored as a secure hash and cannot be decrypted'
+    password: userRows[0].password_hash,
+    note: 'Password retrieved successfully'
   });
 });
 
