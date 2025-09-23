@@ -44,6 +44,29 @@ async function load() {
   }
 }
 
+// Check if user is logged in and update UI
+async function checkAuthStatus() {
+  try {
+    const result = await api('/api/auth/me');
+    if (result.user) {
+      // User is logged in - hide login form, show logout
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'block';
+    } else {
+      // User is not logged in - show login form, hide logout
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+  } catch (error) {
+    // Not logged in - show login form
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'none';
+  }
+}
+
 // Simple auth bar
 document.getElementById('loginBtn')?.addEventListener('click', async ()=>{
   const email = document.getElementById('email').value.trim();
@@ -58,15 +81,17 @@ document.getElementById('loginBtn')?.addEventListener('click', async ()=>{
     console.log('Attempting login with:', email);
     const result = await api('/api/auth/login',{ method:'POST', body: JSON.stringify({ email, password })});
     console.log('Login successful:', result);
-    location.reload(); 
+    await checkAuthStatus(); // Update UI after login
   }
   catch(err){ 
     console.error('Login error:', err);
     alert('Login failed: ' + err.message); 
   }
 });
+
 document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
-  await api('/api/auth/logout',{ method:'POST' }); location.reload();
+  await api('/api/auth/logout',{ method:'POST' }); 
+  await checkAuthStatus(); // Update UI after logout
 });
 
 // Registration functionality
@@ -95,7 +120,7 @@ document.getElementById('registerBtn')?.addEventListener('click', async ()=>{
     const result = await api('/api/auth/register',{ method:'POST', body: JSON.stringify({ username, email, password })});
     console.log('Registration successful:', result);
     alert('Registration successful! You are now logged in.');
-    location.reload(); 
+    await checkAuthStatus(); // Update UI after registration
   }
   catch(err){ 
     console.error('Registration error:', err);
@@ -103,4 +128,6 @@ document.getElementById('registerBtn')?.addEventListener('click', async ()=>{
   }
 });
 
+// Initialize the page
+checkAuthStatus();
 load();

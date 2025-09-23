@@ -166,6 +166,11 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// Check auth status
+app.get('/api/auth/me', auth(), (req, res) => {
+  res.json({ user: req.user });
+});
+
 // Media: list (approved only)
 app.get('/api/media', async (req, res) => {
   const [rows] = await pool.query(
