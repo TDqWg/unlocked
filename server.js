@@ -233,18 +233,31 @@ app.post('/api/media/:id/like', auth(['user', 'admin']), async (req, res) => {
     );
     
     if (existing.length > 0) {
-      return res.status(400).json({ error: 'You have already liked this media' });
+      // Unlike - remove the like
+      await pool.query('DELETE FROM likes WHERE media_id=? AND user_id=?', [id, userId]);
+      await pool.query('UPDATE media SET likes = likes - 1 WHERE id=?', [id]);
+      res.json({ ok: true, liked: false, message: 'Unliked successfully' });
+    } else {
+      // Like - add the like
+      await pool.query('INSERT INTO likes (media_id, user_id) VALUES (?, ?)', [id, userId]);
+      await pool.query('UPDATE media SET likes = likes + 1 WHERE id=?', [id]);
+      res.json({ ok: true, liked: true, message: 'Liked successfully' });
     }
-    
-    // Add the like
-    await pool.query('INSERT INTO likes (media_id, user_id) VALUES (?, ?)', [id, userId]);
-    await pool.query('UPDATE media SET likes = likes + 1 WHERE id=?', [id]);
-    
-    res.json({ ok: true, message: 'Liked successfully' });
   } catch (error) {
     console.error('Like error:', error);
     res.status(500).json({ error: 'Failed to like media' });
   }
+});
+
+// Get user's liked posts
+app.get('/api/user/likes', auth(['user', 'admin']), async (req, res) => {
+  const userId = req.user.id;
+  const [rows] = await pool.query(
+    'SELECT media_id FROM likes WHERE user_id = ?',
+    [userId]
+  );
+  const likedIds = rows.map(row => row.media_id);
+  res.json({ likedIds });
 });
 
 // Comments

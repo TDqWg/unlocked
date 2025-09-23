@@ -17,6 +17,16 @@ async function load() {
   grid.innerHTML = '<p>Loading…</p>';
   try {
     const { items } = await api('/api/media');
+    
+    // Get user's liked posts if logged in
+    let likedIds = [];
+    try {
+      const { likedIds: userLikes } = await api('/api/user/likes');
+      likedIds = userLikes;
+    } catch (err) {
+      // User not logged in, that's fine
+    }
+    
     grid.innerHTML = '';
     items.forEach(m => {
       const el = document.createElement('div');
@@ -29,7 +39,9 @@ async function load() {
         el.appendChild(v);
       }
       const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.marginTop='6px';
-      row.innerHTML = `<span>${m.title ?? ''}</span><button data-id="${m.id}" class="like">❤ ${m.likes}</button>`;
+      const isLiked = likedIds.includes(m.id);
+      const heartIcon = isLiked ? '❤️' : '🤍';
+      row.innerHTML = `<span>${m.title ?? ''}</span><button data-id="${m.id}" class="like" data-liked="${isLiked}">${heartIcon} ${m.likes}</button>`;
       el.appendChild(row);
       grid.appendChild(el);
     });
@@ -37,15 +49,21 @@ async function load() {
     grid.addEventListener('click', async (e)=>{
       const b = e.target.closest('button.like'); if(!b) return;
       const id = b.getAttribute('data-id');
+      const isCurrentlyLiked = b.getAttribute('data-liked') === 'true';
+      
       try{ 
-        await api(`/api/media/${id}/like`, { method:'POST' }); 
-        b.textContent = '❤ ' + (parseInt(b.textContent.slice(2)) + 1);
-        b.disabled = true;
-        b.style.opacity = '0.7';
+        const result = await api(`/api/media/${id}/like`, { method:'POST' }); 
+        
+        // Update button state
+        const newLikeCount = parseInt(b.textContent.slice(2));
+        const newCount = result.liked ? newLikeCount + 1 : newLikeCount - 1;
+        const newHeart = result.liked ? '❤️' : '🤍';
+        
+        b.textContent = `${newHeart} ${newCount}`;
+        b.setAttribute('data-liked', result.liked);
+        
       }catch(err){ 
-        if (err.message.includes('already liked')) {
-          alert('You have already liked this media!');
-        } else if (err.message.includes('401')) {
+        if (err.message.includes('401')) {
           alert('Please log in to like media');
         } else {
           alert(err.message); 
