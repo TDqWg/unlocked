@@ -104,6 +104,15 @@ async function initDatabase() {
     await pool.query("DELETE FROM media WHERE url LIKE '%sample%'");
     console.log('✅ Sample media removed');
     
+    // Remove duplicate media (keep the newest one)
+    await pool.query(`
+      DELETE m1 FROM media m1
+      INNER JOIN media m2 
+      WHERE m1.id < m2.id 
+      AND m1.url = m2.url
+    `);
+    console.log('✅ Duplicate media removed');
+    
     console.log('✅ Database initialized successfully');
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -230,6 +239,17 @@ app.post('/api/media/:id/comments', auth(), async (req, res) => {
 app.post('/api/admin/remove-samples', auth(['admin']), async (req, res) => {
   await pool.query("DELETE FROM media WHERE url LIKE '%sample%'");
   res.json({ ok: true, message: 'Sample media removed' });
+});
+
+// Admin: Remove duplicates
+app.post('/api/admin/remove-duplicates', auth(['admin']), async (req, res) => {
+  const [result] = await pool.query(`
+    DELETE m1 FROM media m1
+    INNER JOIN media m2 
+    WHERE m1.id < m2.id 
+    AND m1.url = m2.url
+  `);
+  res.json({ ok: true, message: `${result.affectedRows} duplicate media removed` });
 });
 
 // Admin: Get all media (including unapproved)

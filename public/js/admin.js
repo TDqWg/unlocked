@@ -136,3 +136,20 @@ document.getElementById('removeSamplesBtn').addEventListener('click', async ()=>
     adminMsg.style.color = '#f66';
   }
 });
+
+document.getElementById('removeDuplicatesBtn').addEventListener('click', async ()=>{
+  const adminMsg = document.getElementById('adminMsg');
+  if (!confirm('Are you sure you want to remove duplicate media?')) return;
+  
+  try{
+    const result = await api('/api/admin/remove-duplicates',{ method:'POST'});
+    adminMsg.textContent = result.message;
+    adminMsg.style.color = '#6f6';
+    
+    // Refresh gallery list
+    loadGallery();
+  }catch(err){
+    adminMsg.textContent = err.message;
+    adminMsg.style.color = '#f66';
+  }
+});
