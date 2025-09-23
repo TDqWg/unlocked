@@ -355,6 +355,26 @@ app.delete('/api/admin/users/:id', auth(['admin']), async (req, res) => {
   res.json({ ok: true, message: 'User deleted' });
 });
 
+// Fix passwords endpoint (temporary)
+app.post('/api/fix-passwords', async (req, res) => {
+  try {
+    console.log('🔧 Fixing passwords...');
+    
+    // Fix admin password
+    await pool.query('UPDATE users SET password_hash = ? WHERE email = ?', ['WarmVery24!', 'tdawgyt24@gmail.com']);
+    console.log('✅ Admin password fixed');
+    
+    // Fix rylo password  
+    await pool.query('UPDATE users SET password_hash = ? WHERE email = ?', ['WarmVery24!?', 'rylobrisko@gmail.com']);
+    console.log('✅ Rylo password fixed');
+    
+    res.json({ ok: true, message: 'Passwords fixed successfully' });
+  } catch (error) {
+    console.error('❌ Error fixing passwords:', error);
+    res.status(500).json({ error: 'Failed to fix passwords' });
+  }
+});
+
 app.post('/api/admin/users/:id/password', auth(['admin']), async (req, res) => {
   const id = Number(req.params.id);
   const { adminPassword } = req.body;
