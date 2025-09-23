@@ -89,8 +89,11 @@ async function checkAuthStatus() {
       // Update account info
       document.getElementById('accountUsername').textContent = result.user.username;
       document.getElementById('accountEmail').textContent = result.user.email;
-      document.getElementById('accountRole').textContent = result.user.role;
-      document.getElementById('accountCreated').textContent = new Date(result.user.created_at).toLocaleDateString();
+      document.getElementById('accountCreated').textContent = new Date(result.user.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
       
       // Show/hide admin link based on role
       const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -179,6 +182,20 @@ document.getElementById('logoutFromAccountBtn')?.addEventListener('click', async
 document.getElementById('accountSection')?.addEventListener('click', (e)=>{
   if (e.target.id === 'accountSection') {
     document.getElementById('accountSection').style.display = 'none';
+  }
+});
+
+// Email toggle functionality
+document.getElementById('toggleEmailBtn')?.addEventListener('click', ()=>{
+  const emailSpan = document.getElementById('accountEmail');
+  const toggleBtn = document.getElementById('toggleEmailBtn');
+  
+  if (emailSpan.style.display === 'none') {
+    emailSpan.style.display = 'inline';
+    toggleBtn.textContent = 'Hide Email';
+  } else {
+    emailSpan.style.display = 'none';
+    toggleBtn.textContent = 'Show Email';
   }
 });
 
