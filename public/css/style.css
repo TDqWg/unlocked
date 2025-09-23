@@ -22,3 +22,75 @@ button:hover{border-color:var(--accent);color:var(--accent)}
   padding: 18px;
 }
 .grid img, .grid video { width: 100%; border-radius: 10px; display: block; }
+
+/* Account Section Styles */
+#accountSection {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.account-dropdown {
+  background: #131316;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.account-dropdown h3 {
+  margin: 0 0 16px 0;
+  color: var(--accent);
+  text-align: center;
+}
+
+#accountInfo p {
+  margin: 8px 0;
+  padding: 4px 0;
+  border-bottom: 1px solid #222;
+}
+
+#accountInfo p:last-child {
+  border-bottom: none;
+}
+
+.account-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.account-actions button {
+  padding: 8px 16px;
+  border: 1px solid #333;
+  background: #0c0c0d;
+  color: var(--fg);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.account-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#logoutFromAccountBtn {
+  background: #d32f2f;
+  border-color: #d32f2f;
+  color: white;
+}
+
+#logoutFromAccountBtn:hover {
+  background: #f44336;
+  border-color: #f44336;
+}

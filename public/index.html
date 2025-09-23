@@ -21,6 +21,7 @@
     <nav>
       <a href="/">Home</a>
       <a href="/admin" style="display:none">Admin</a>
+      <button id="accountBtn" style="display:none; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; margin-left: 12px;">👤</button>
     </nav>
   </header>
 
@@ -40,6 +41,23 @@
         <button id="showLoginBtn">Back to Login</button>
       </div>
       <button id="logoutBtn" style="display:none">Log out</button>
+      
+      <!-- Account Section -->
+      <div id="accountSection" style="display:none">
+        <div class="account-dropdown">
+          <h3>My Account</h3>
+          <div id="accountInfo">
+            <p><strong>Username:</strong> <span id="accountUsername"></span></p>
+            <p><strong>Email:</strong> <span id="accountEmail"></span></p>
+            <p><strong>Role:</strong> <span id="accountRole"></span></p>
+            <p><strong>Member since:</strong> <span id="accountCreated"></span></p>
+          </div>
+          <div class="account-actions">
+            <button id="closeAccountBtn">Close</button>
+            <button id="logoutFromAccountBtn">Log out</button>
+          </div>
+        </div>
+      </div>
     </div>
     <section id="grid" class="grid"></section>
   </main>

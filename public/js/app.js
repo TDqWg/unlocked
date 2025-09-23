@@ -80,10 +80,17 @@ async function checkAuthStatus() {
   try {
     const result = await api('/api/auth/me');
     if (result.user) {
-      // User is logged in - hide login form, show logout
+      // User is logged in - hide login form, show logout and account
       document.getElementById('loginForm').style.display = 'none';
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('accountBtn').style.display = 'block';
+      
+      // Update account info
+      document.getElementById('accountUsername').textContent = result.user.username;
+      document.getElementById('accountEmail').textContent = result.user.email;
+      document.getElementById('accountRole').textContent = result.user.role;
+      document.getElementById('accountCreated').textContent = new Date(result.user.created_at).toLocaleDateString();
       
       // Show/hide admin link based on role
       const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -99,6 +106,7 @@ async function checkAuthStatus() {
       document.getElementById('loginForm').style.display = 'block';
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('accountBtn').style.display = 'none';
       
       // Hide admin link when not logged in
       const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -111,6 +119,7 @@ async function checkAuthStatus() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('accountBtn').style.display = 'none';
     
     // Hide admin link when not logged in
     const adminLink = document.querySelector('nav a[href="/admin"]');
@@ -145,6 +154,32 @@ document.getElementById('loginBtn')?.addEventListener('click', async ()=>{
 document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
   await api('/api/auth/logout',{ method:'POST' }); 
   await checkAuthStatus(); // Update UI after logout
+});
+
+// Account section functionality
+document.getElementById('accountBtn')?.addEventListener('click', ()=>{
+  document.getElementById('accountSection').style.display = 'flex';
+});
+
+document.getElementById('logoutBtn')?.addEventListener('dblclick', ()=>{
+  document.getElementById('accountSection').style.display = 'flex';
+});
+
+document.getElementById('closeAccountBtn')?.addEventListener('click', ()=>{
+  document.getElementById('accountSection').style.display = 'none';
+});
+
+document.getElementById('logoutFromAccountBtn')?.addEventListener('click', async ()=>{
+  await api('/api/auth/logout',{ method:'POST' }); 
+  document.getElementById('accountSection').style.display = 'none';
+  await checkAuthStatus(); // Update UI after logout
+});
+
+// Close account section when clicking outside
+document.getElementById('accountSection')?.addEventListener('click', (e)=>{
+  if (e.target.id === 'accountSection') {
+    document.getElementById('accountSection').style.display = 'none';
+  }
 });
 
 // Registration functionality
