@@ -232,6 +232,23 @@ app.post('/api/admin/remove-samples', auth(['admin']), async (req, res) => {
   res.json({ ok: true, message: 'Sample media removed' });
 });
 
+// Admin: Get all media (including unapproved)
+app.get('/api/admin/media', auth(['admin']), async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT m.id, m.title, m.url, m.type, m.likes, m.is_approved, m.created_at, c.name as category
+     FROM media m LEFT JOIN categories c ON m.category_id=c.id
+     ORDER BY m.created_at DESC`
+  );
+  res.json({ items: rows });
+});
+
+// Admin: Delete media
+app.delete('/api/admin/media/:id', auth(['admin']), async (req, res) => {
+  const id = Number(req.params.id);
+  await pool.query('DELETE FROM media WHERE id=?', [id]);
+  res.json({ ok: true, message: 'Media deleted' });
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Start server with database initialization
