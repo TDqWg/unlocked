@@ -1,0 +1,225 @@
+import 'dotenv/config';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import mysql from 'mysql2/promise';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const app = express();
+
+// Security & middleware
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// DB pool
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT || 3306),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  connectionLimit: 10
+});
+
+// Auto-initialize database on startup
+async function initDatabase() {
+  try {
+    console.log('🔧 Initializing database...');
+    
+    // Create tables if they don't exist
+    const sql = `
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(60) UNIQUE NOT NULL,
+      email VARCHAR(120) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      role ENUM('user','admin') DEFAULT 'user',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS categories (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(60) UNIQUE NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS media (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      category_id INT,
+      title VARCHAR(160),
+      url TEXT NOT NULL,
+      type ENUM('image','video') NOT NULL,
+      is_approved TINYINT DEFAULT 1,
+      likes INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS comments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      media_id INT NOT NULL,
+      user_id INT NOT NULL,
+      body VARCHAR(500) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    `;
+    
+    await pool.query(sql);
+    
+    // Seed categories
+    const cats = ['General', 'Photos', 'Videos'];
+    for (const name of cats) {
+      await pool.query('INSERT IGNORE INTO categories (name) VALUES (?)', [name]);
+    }
+    
+    // Create admin user if it doesn't exist
+    const [rows] = await pool.query('SELECT id FROM users WHERE email=?', [process.env.ADMIN_EMAIL]);
+    if (rows.length === 0) {
+      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+      await pool.query(
+        'INSERT INTO users (username, email, password_hash, role) VALUES (?,?,?,?)',
+        [process.env.ADMIN_USERNAME, process.env.ADMIN_EMAIL, hash, 'admin']
+      );
+      console.log('✅ Admin user created');
+    }
+    
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    process.exit(1);
+  }
+}
+
+// Helpers
+const sign = (u) =>
+  jwt.sign({ id: u.id, role: u.role, username: u.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+const auth = (roles = []) => async (req, res, next) => {
+  try {
+    const token = req.cookies?.token || (req.headers.authorization || '').replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+    if (roles.length && !roles.includes(data.role)) return res.status(403).json({ error: 'Forbidden' });
+    req.user = data;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+// Routes: basic pages (served from /public)
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+
+// Auth
+app.post('/api/auth/register', async (req, res) => {
+  const { username, email, password } = req.body || {};
+  if (!username || !email || !password) return res.status(400).json({ error: 'Missing fields' });
+  const hash = await bcrypt.hash(password, 10);
+  try {
+    const [r] = await pool.query('INSERT INTO users (username, email, password_hash) VALUES (?,?,?)',
+      [username, email, hash]);
+    const user = { id: r.insertId, role: 'user', username };
+    const token = sign(user);
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
+    res.json({ ok: true, user });
+  } catch (e) {
+    res.status(400).json({ error: 'User exists or invalid data' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  const [rows] = await pool.query('SELECT * FROM users WHERE email=? LIMIT 1', [email]);
+  const user = rows[0];
+  if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (!ok) return res.status(400).json({ error: 'Invalid credentials' });
+  const token = sign(user);
+  res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
+  res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ ok: true });
+});
+
+// Media: list (approved only)
+app.get('/api/media', async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT m.id, m.title, m.url, m.type, m.likes, m.created_at, c.name as category
+     FROM media m LEFT JOIN categories c ON m.category_id=c.id
+     WHERE m.is_approved=1 ORDER BY m.created_at DESC LIMIT 200`
+  );
+  res.json({ items: rows });
+});
+
+// Media: create (admin only, you supply a Bunny CDN URL)
+app.post('/api/admin/media', auth(['admin']), async (req, res) => {
+  const { title, url, type, category } = req.body || {};
+  if (!url || !type) return res.status(400).json({ error: 'Missing url/type' });
+
+  // ensure category exists / get id
+  let categoryId = null;
+  if (category) {
+    await pool.query('INSERT IGNORE INTO categories (name) VALUES (?)', [category]);
+    const [c] = await pool.query('SELECT id FROM categories WHERE name=? LIMIT 1', [category]);
+    categoryId = c[0]?.id ?? null;
+  }
+
+  await pool.query(
+    'INSERT INTO media (user_id, category_id, title, url, type, is_approved) VALUES (?,?,?,?,?,1)',
+    [req.user.id, categoryId, title || null, url, type]
+  );
+  res.json({ ok: true });
+});
+
+// Likes
+app.post('/api/media/:id/like', auth(), async (req, res) => {
+  const id = Number(req.params.id);
+  await pool.query('UPDATE media SET likes = likes + 1 WHERE id=?', [id]);
+  res.json({ ok: true });
+});
+
+// Comments
+app.get('/api/media/:id/comments', async (req, res) => {
+  const id = Number(req.params.id);
+  const [rows] = await pool.query(
+    `SELECT c.id, c.body, c.created_at, u.username
+     FROM comments c JOIN users u ON c.user_id=u.id
+     WHERE c.media_id=? ORDER BY c.created_at DESC LIMIT 100`, [id]);
+  res.json({ items: rows });
+});
+
+app.post('/api/media/:id/comments', auth(), async (req, res) => {
+  const id = Number(req.params.id);
+  const { body } = req.body || {};
+  if (!body) return res.status(400).json({ error: 'Empty comment' });
+  await pool.query('INSERT INTO comments (media_id, user_id, body) VALUES (?,?,?)', [id, req.user.id, body]);
+  res.json({ ok: true });
+});
+
+const PORT = process.env.PORT || 3000;
+
+// Start server with database initialization
+async function startServer() {
+  await initDatabase();
+  app.listen(PORT, () => console.log(`✅ Server listening on ${PORT}`));
+}
+
+startServer().catch(err => {
+  console.error('❌ Failed to start server:', err);
+  process.exit(1);
+});

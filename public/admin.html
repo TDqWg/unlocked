@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · Unlocked</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header><h1>Admin</h1><nav><a href="/">Home</a></nav></header>
+  <main>
+    <p>Upload entries by **URL** (paste your Bunny CDN link).</p>
+    <div class="card">
+      <input id="title" placeholder="Title (optional)" />
+      <input id="url" placeholder="Bunny CDN URL e.g. https://zone.b-cdn.net/path/file.mp4" />
+      <select id="type">
+        <option value="image">image</option>
+        <option value="video">video</option>
+      </select>
+      <input id="category" placeholder="Category (optional)" />
+      <button id="addBtn">Add</button>
+      <p id="msg"></p>
+    </div>
+  </main>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

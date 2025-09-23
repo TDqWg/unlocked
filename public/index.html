@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unlocked Gallery</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="age-gate" class="modal">
+    <div class="box">
+      <h2>18+ Only</h2>
+      <p>By entering you confirm you are at least 18 years old.</p>
+      <button id="enterBtn">Enter</button>
+      <button onclick="location.href='https://google.com'">Leave</button>
+    </div>
+  </div>
+
+  <header>
+    <h1>Unlocked Gallery</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/admin">Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="auth">
+      <div id="loginForm">
+        <input id="email" placeholder="email" />
+        <input id="password" type="password" placeholder="password" />
+        <button id="loginBtn">Log in</button>
+        <button id="showRegisterBtn">Register</button>
+      </div>
+      <div id="registerForm" style="display:none">
+        <input id="regUsername" placeholder="username" />
+        <input id="regEmail" placeholder="email" />
+        <input id="regPassword" type="password" placeholder="password" />
+        <button id="registerBtn">Register</button>
+        <button id="showLoginBtn">Back to Login</button>
+      </div>
+      <button id="logoutBtn" style="display:none">Log out</button>
+    </div>
+<section class="grid">
+  <!-- Images -->
+  <img src="https://unlockedleakhub.b-cdn.net/qbGzW7yg.jpeg" alt="pic1" loading="lazy">
+  <img src="https://unlockedleakhub.b-cdn.net/mtwk418j8sqf1.jpeg" alt="pic2" loading="lazy">
+
+  <!-- Videos -->
+  <video controls preload="metadata">
+    <source src="https://unlockedleakhub.b-cdn.net/WFAYFXKi_720p.mp4" type="video/mp4">
+  </video>
+</section>
+
+    <section id="grid" class="grid"></section>
+  </main>
+
+  <footer>
+    <small>© Unlocked · <a href="#" id="dmca">DMCA</a></small>
+  </footer>
+
+  <script>/* age gate */ (function(){
+    if(!localStorage.getItem('age-ok')){
+      document.getElementById('age-gate').style.display='flex';
+    }
+    document.getElementById('enterBtn').onclick=()=>{
+      localStorage.setItem('age-ok','1');
+      document.getElementById('age-gate').style.display='none';
+    };
+  })();</script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
