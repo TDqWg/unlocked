@@ -37,7 +37,20 @@ async function load() {
     grid.addEventListener('click', async (e)=>{
       const b = e.target.closest('button.like'); if(!b) return;
       const id = b.getAttribute('data-id');
-      try{ await api(`/api/media/${id}/like`, { method:'POST' }); b.textContent = '❤ ' + (parseInt(b.textContent.slice(2)) + 1); }catch(err){ alert(err.message); }
+      try{ 
+        await api(`/api/media/${id}/like`, { method:'POST' }); 
+        b.textContent = '❤ ' + (parseInt(b.textContent.slice(2)) + 1);
+        b.disabled = true;
+        b.style.opacity = '0.7';
+      }catch(err){ 
+        if (err.message.includes('already liked')) {
+          alert('You have already liked this media!');
+        } else if (err.message.includes('401')) {
+          alert('Please log in to like media');
+        } else {
+          alert(err.message); 
+        }
+      }
     });
   } catch (err) {
     grid.innerHTML = `<p style="color:#f66">${err.message}</p>`;

@@ -64,15 +64,25 @@ async function initDatabase() {
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
     );
 
-    CREATE TABLE IF NOT EXISTS comments (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      media_id INT NOT NULL,
-      user_id INT NOT NULL,
-      body VARCHAR(500) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
+           CREATE TABLE IF NOT EXISTS comments (
+             id INT AUTO_INCREMENT PRIMARY KEY,
+             media_id INT NOT NULL,
+             user_id INT NOT NULL,
+             body VARCHAR(500) NOT NULL,
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+             FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+           );
+
+           CREATE TABLE IF NOT EXISTS likes (
+             id INT AUTO_INCREMENT PRIMARY KEY,
+             media_id INT NOT NULL,
+             user_id INT NOT NULL,
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+             UNIQUE KEY unique_like (media_id, user_id),
+             FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+           );
     `;
     
     // Execute each table creation separately to avoid syntax issues
@@ -211,10 +221,30 @@ app.post('/api/admin/media', auth(['admin']), async (req, res) => {
 });
 
 // Likes
-app.post('/api/media/:id/like', auth(), async (req, res) => {
+app.post('/api/media/:id/like', auth(['user', 'admin']), async (req, res) => {
   const id = Number(req.params.id);
-  await pool.query('UPDATE media SET likes = likes + 1 WHERE id=?', [id]);
-  res.json({ ok: true });
+  const userId = req.user.id;
+  
+  try {
+    // Check if user already liked this media
+    const [existing] = await pool.query(
+      'SELECT id FROM likes WHERE media_id=? AND user_id=?', 
+      [id, userId]
+    );
+    
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'You have already liked this media' });
+    }
+    
+    // Add the like
+    await pool.query('INSERT INTO likes (media_id, user_id) VALUES (?, ?)', [id, userId]);
+    await pool.query('UPDATE media SET likes = likes + 1 WHERE id=?', [id]);
+    
+    res.json({ ok: true, message: 'Liked successfully' });
+  } catch (error) {
+    console.error('Like error:', error);
+    res.status(500).json({ error: 'Failed to like media' });
+  }
 });
 
 // Comments
