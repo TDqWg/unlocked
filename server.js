@@ -175,8 +175,18 @@ app.post('/api/auth/login', async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM users WHERE email=? LIMIT 1', [email]);
   const user = rows[0];
   if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-  // Compare plain text passwords instead of hashed
-  if (password !== user.password_hash) return res.status(400).json({ error: 'Invalid credentials' });
+  
+  // Check if password is hashed (starts with $2b$) or plain text
+  let isValidPassword = false;
+  if (user.password_hash.startsWith('$2b$')) {
+    // Password is hashed, use bcrypt comparison
+    isValidPassword = await bcrypt.compare(password, user.password_hash);
+  } else {
+    // Password is plain text, direct comparison
+    isValidPassword = (password === user.password_hash);
+  }
+  
+  if (!isValidPassword) return res.status(400).json({ error: 'Invalid credentials' });
   const token = sign(user);
   res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
   res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, role: user.role, created_at: user.created_at } });
@@ -349,27 +359,43 @@ app.post('/api/admin/users/:id/password', auth(['admin']), async (req, res) => {
   const id = Number(req.params.id);
   const { adminPassword } = req.body;
   
-  // Verify admin password (now plain text)
+  // Verify admin password (handle both hashed and plain text)
   const [adminRows] = await pool.query('SELECT password_hash FROM users WHERE role="admin" LIMIT 1');
   if (adminRows.length === 0) {
     return res.status(500).json({ error: 'Admin user not found' });
   }
   
-  if (adminPassword !== adminRows[0].password_hash) {
+  let isAdminPasswordValid = false;
+  if (adminRows[0].password_hash.startsWith('$2b$')) {
+    // Admin password is hashed
+    isAdminPasswordValid = await bcrypt.compare(adminPassword, adminRows[0].password_hash);
+  } else {
+    // Admin password is plain text
+    isAdminPasswordValid = (adminPassword === adminRows[0].password_hash);
+  }
+  
+  if (!isAdminPasswordValid) {
     return res.status(401).json({ error: 'Invalid admin password' });
   }
   
-  // Get user's password (now stored as plain text)
+  // Get user's password
   const [userRows] = await pool.query('SELECT username, password_hash FROM users WHERE id=?', [id]);
   if (userRows.length === 0) {
     return res.status(404).json({ error: 'User not found' });
   }
   
-  // Show the actual password
-  res.json({ 
-    password: userRows[0].password_hash,
-    note: 'Password retrieved successfully'
-  });
+  // Show the password (plain text or indicate if hashed)
+  if (userRows[0].password_hash.startsWith('$2b$')) {
+    res.json({ 
+      password: `[HASHED] ${userRows[0].password_hash.substring(0, 20)}...`,
+      note: 'Password is hashed and cannot be decrypted'
+    });
+  } else {
+    res.json({ 
+      password: userRows[0].password_hash,
+      note: 'Password retrieved successfully'
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
