@@ -19,13 +19,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// DB pool
+// DB pool - support Railway's automatic MySQL variables
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: process.env.MYSQL_HOST || process.env.DB_HOST,
+  port: Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3306),
+  user: process.env.MYSQL_USER || process.env.DB_USER,
+  password: process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD,
+  database: process.env.MYSQL_DATABASE || process.env.DB_NAME,
   connectionLimit: 10
 });
 
@@ -33,6 +33,19 @@ const pool = mysql.createPool({
 async function initDatabase() {
   try {
     console.log('🔧 Initializing database...');
+    
+    // Debug: Show available environment variables
+    console.log('🔍 Environment variables:');
+    console.log(`   MYSQL_HOST: ${process.env.MYSQL_HOST || 'undefined'}`);
+    console.log(`   MYSQL_PORT: ${process.env.MYSQL_PORT || 'undefined'}`);
+    console.log(`   MYSQL_USER: ${process.env.MYSQL_USER || 'undefined'}`);
+    console.log(`   MYSQL_DATABASE: ${process.env.MYSQL_DATABASE || 'undefined'}`);
+    console.log(`   MYSQL_PASSWORD: ${process.env.MYSQL_PASSWORD ? '[SET]' : '[NOT SET]'}`);
+    console.log(`   DB_HOST: ${process.env.DB_HOST || 'undefined'}`);
+    console.log(`   DB_PORT: ${process.env.DB_PORT || 'undefined'}`);
+    console.log(`   DB_USER: ${process.env.DB_USER || 'undefined'}`);
+    console.log(`   DB_NAME: ${process.env.DB_NAME || 'undefined'}`);
+    console.log(`   DB_PASSWORD: ${process.env.DB_PASSWORD ? '[SET]' : '[NOT SET]'}`);
     
     // Create tables if they don't exist
     const sql = `
