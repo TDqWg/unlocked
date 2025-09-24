@@ -415,8 +415,18 @@ const PORT = process.env.PORT || 3000;
 
 // Start server with database initialization
 async function startServer() {
-  await initDatabase();
-  app.listen(PORT, () => console.log(`✅ Server listening on ${PORT}`));
+  try {
+    await initDatabase();
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('⚠️ Database initialization failed, but starting server anyway:', error.message);
+    console.log('🔧 Some features may not work until database is fixed');
+  }
+  
+  app.listen(PORT, () => {
+    console.log(`✅ Server listening on ${PORT}`);
+    console.log(`🌐 Website available at: http://localhost:${PORT}`);
+  });
 }
 
 startServer().catch(err => {
