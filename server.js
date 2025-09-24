@@ -160,6 +160,15 @@ const auth = (roles = []) => async (req, res, next) => {
   }
 };
 
+// Simple test endpoint
+app.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Server is working!', 
+    timestamp: new Date().toISOString(),
+    port: PORT
+  });
+});
+
 // Routes: basic pages (served from /public)
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
@@ -416,9 +425,15 @@ const PORT = process.env.PORT || 3000;
 // Start server with database initialization
 async function startServer() {
   // Start the server immediately
-  app.listen(PORT, () => {
-    console.log(`✅ Server listening on ${PORT}`);
+  const server = app.listen(PORT, () => {
+    console.log(`✅ Server listening on port ${PORT}`);
     console.log(`🌐 Website available at: http://localhost:${PORT}`);
+    console.log(`🔗 Railway should expose this on: https://unlockedleakhub.com`);
+  });
+  
+  // Handle server errors
+  server.on('error', (error) => {
+    console.error('❌ Server error:', error);
   });
   
   // Initialize database in background (non-blocking)
